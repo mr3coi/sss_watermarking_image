@@ -8,14 +8,46 @@ class SSSW(object):
                                     flatten=True,
                                     mode='L').astype(float)
         self.alpha = alpha
+        self.mark_size = pat_size
         self.mark = self.gaussian_vector(pat_size)
 
     def insert(self):
-        image_dct = SSSW.dctII(sssw.original)
+        """
+        :return: the new version of the input image w/ watermark inserted
+        :rtype: numpy.ndarray
+        """
+        # Compute DCT of the original image
+        image_dct = SSSW.dctII(self.original)
+
+        # Compute the regions most perceptually significant
+        locations = np.argsort(-image_dct,axis=None)
+        ROW_SIZE = self.original.shape[-1]
+        locations = [(val//ROW_SIZE, val%ROW_SIZE) for val in locations]
+
+        # Embed the watermark into the regions
+        # (Using the formula (2) described in the paper)
+        for idx,(loc,mark_val) in enumerate(zip(locations,self.mark)):
+            image_dct[loc] *= 1 + self.alpha * mark_val
+
+        # Convert the DCT result back to image
         image_rev = SSSW.idctII(image_dct)
+
         return image_rev
 
     def detect(self, image):
+        """
+        :param image: the image whose watermark is to be matched
+        :type image: numpy.ndarray
+        :return: whether the watermark is detected or not
+        :rtype: bool
+        """
+        def extract(self, image):
+            """
+            :param image: the image whose watermark is to be matched
+            :type image: numpy.ndarray
+            :return: whether the watermark is detected or not
+            """
+            pass
         pass
 
     @staticmethod
@@ -28,8 +60,8 @@ class SSSW(object):
 
     @staticmethod
     def dctII(image: np.array):
-        return dct(dct(image,axis=1),axis=0)
+        return dct(dct(image,axis=0),axis=1, norm='ortho')
 
     @staticmethod
     def idctII(image: np.array):
-        return idct(idct(image,axis=1),axis=0)
+        return idct(idct(image,axis=1),axis=0, norm='ortho')
