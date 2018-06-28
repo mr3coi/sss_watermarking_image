@@ -12,8 +12,11 @@ def crop(image: Image, topleft: tuple, botright: tuple):
 
     :param image: input image
     :type image: PIL.Image
-    :param topleft: the coordinate of the top-left corner of the desired crop
-    :type topleft: tuple(int,int) :param botright: the coordinate of the bottom-right corner of the desired crop
+    :param topleft: the coordinate of the top-left corner of the desired crop \
+                    (row,column)
+    :type topleft: tuple(int,int)
+    :param botright: the coordinate of the bottom-right corner of the desired crop \
+                     (row,column)
     :type botright: tuple(int,int)
 
     :return: the modified image

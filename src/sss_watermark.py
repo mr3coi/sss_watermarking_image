@@ -1,6 +1,7 @@
 from scipy import misc
 from scipy.fftpack import dct, idct
 import numpy as np
+from PIL import Image
 
 class SSSW(object):
     """
@@ -29,6 +30,7 @@ class SSSW(object):
         self.ori_dct    = None      # Storage of DCT result of input image
 
     def insert(self):
+        # TODO convert to PIL.Image, as 'misc.imread' is deprecated
         """
         Method for inserting a generated watermark into the input image.
 
@@ -94,6 +96,44 @@ class SSSW(object):
         target_mark = self.extract(image)
         sim = similarity(self.mark_2d, target_mark)
         return sim, (sim > threshold)
+
+    def recover_crop(self, image, topleft):
+        """
+        Assumes that the coordinate of the topleft corner w.r.t. \
+            the original image is known.
+        Also assumes that no other modification has been made to the input.
+
+        :param image: input image
+        :type image: PIL.Image
+        :param topleft: the coordinates of the topleft corner of the crop \
+                        in the original image (row, column)
+        :type topleft: tuple(int,int)
+
+        :return: the input image w/ cropped parts filled in \
+                 w/ data from the orignal image
+        :rtype: PIL.Image
+        """
+        # TODO remove 'fromarray' once conversion to 'PIL.Image' is complete in 'insert'
+        out = Image.fromarray(self.original).convert("L").copy()
+        out.paste(image, box=tuple(reversed(topleft)))
+        return out
+
+    def recover_rotate(self, image, angle):
+        pass
+
+    def recover_scale(self, image):
+        """
+        Resizes the input image to fit the size of the original image.
+        Assumes that no other modification has been made to the input.
+
+        :param image: input image
+        :type image: PIL.Image
+
+        :return: the input image resized to match the original image
+        :rtype: PIL.Image
+        """
+        print(self.original.shape)
+        return image.resize(size=reversed(self.original.shape))
 
     @staticmethod
     def gaussian_vector(size: int):
