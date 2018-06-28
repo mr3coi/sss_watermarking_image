@@ -19,6 +19,13 @@ def crop(image, topleft, botright):
     """
     top, left = topleft
     bottom, right = botright
+
+    MSG = "Cannot crop outside the given image"
+    assert top >= 0, MSG
+    assert left >= 0, MSG
+    assert bottom <= image.size[1], MSG
+    assert right <= image.size[0], MSG
+
     return image.crop(box=(left,top,right,bottom))
 
 def rotate(image, angle):
@@ -35,15 +42,19 @@ def rotate(image, angle):
 
 def scale(image, ratio):
     """
+    Scales the given input image by the given ratio (either enlarge or reduce).
+
     :param image: input image
     :type image: PIL.Image
-    :param : 
-    :type : 
+    :param ratio: the ratio by which to scale the input image
+    :type ratio: float (>0)
 
     :return: the modified image
     :rtype: PIL.Image
     """
-    pass
+    assert ratio > 0, "Negative scale ratio is not supported."
+    new_size = tuple([int(val*ratio) for val in image.size])
+    return image.resize(new_size, resample=Image.BILINEAR)
 
 def compress_jpeg(image, qf):
     """
