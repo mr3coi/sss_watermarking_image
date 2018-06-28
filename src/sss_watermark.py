@@ -4,7 +4,7 @@ import numpy as np
 
 class SSSW(object):
     """
-    Given an input image,
+    Given an input image (specifically, a path to the input image file),
     (i)     randomly generates a watermark pattern,
     (ii)    inserts the pattern into the given image (as specified in paper),
     (iii)   stores intermediate data for detection, and
@@ -22,12 +22,11 @@ class SSSW(object):
         self.original   = misc.imread(img_path,
                                     flatten=True,
                                     mode='L').astype(float)
-        self.alpha      = alpha
-        self.mark_size  = pat_size
-        self.mark       = self.gaussian_vector(pat_size)
-        self.locations  = None
-        self.mark_2d    = None
-        self.ori_dct    = None
+        self.alpha      = alpha     # Scaling parameter
+        self.mark_size  = pat_size  # Size of the watermark
+        self.mark       = self.gaussian_vector(pat_size)    # Watermark for the current instance
+        self.mark_2d    = None      # Mark scattered in 2-D image (computed in 'insert')
+        self.ori_dct    = None      # Storage of DCT result of input image
 
     def insert(self):
         """
@@ -42,12 +41,12 @@ class SSSW(object):
         # Compute the regions most perceptually significant
         locations = np.argsort(-self.ori_dct,axis=None)
         ROW_SIZE = self.original.shape[-1]
-        self.locations = [(val//ROW_SIZE, val%ROW_SIZE) for val in locations]
+        locations = [(val//ROW_SIZE, val%ROW_SIZE) for val in locations]
 
         # Generate 2-D watermark
         # (Using the formula (2) described in the paper)
         self.mark_2d = np.zeros(shape=self.original.shape, dtype=float)
-        for idx,(loc,mark_val) in enumerate(zip(self.locations,self.mark)):
+        for idx,(loc,mark_val) in enumerate(zip(locations,self.mark)):
             self.mark_2d[loc] += self.alpha * mark_val
         self.mark_2d *= self.ori_dct
 
@@ -76,8 +75,8 @@ class SSSW(object):
         :type image: numpy.ndarray(float)
         :param threshold: threshold for concluding the similarity of the watermarks 
         :type threshold: float
-        :return: whether the watermark is detected or not
-        :rtype: bool
+        :return: (similarity value, whether the watermark is detected or not)
+        :rtype: tuple(float, bool)
         """
         def similarity(X,X_star):
             """
