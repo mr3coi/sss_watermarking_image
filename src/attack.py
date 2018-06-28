@@ -2,8 +2,10 @@ import numpy as np
 from scipy import misc
 import matplotlib.pyplot as plt
 from PIL import Image
+from image import read
+from os import remove
 
-def crop(image, topleft, botright):
+def crop(image: Image, topleft: tuple, botright: tuple):
     """
     Produces a rectangular crop of the input image, with edges parallel
         to those of the input image.
@@ -28,19 +30,19 @@ def crop(image, topleft, botright):
 
     return image.crop(box=(left,top,right,bottom))
 
-def rotate(image, angle):
+def rotate(image: Image, angle: int):
     """
     :param image: input image
     :type image: PIL.Image
-    :param angle: the angle by which to rotate the input image
+    :param angle: the degrees by which to rotate the input image (CCW)
     :type angle: int 
 
     :return: the modified image
     :rtype: PIL.Image
     """
-    pass
+    return image.rotate(angle)
 
-def scale(image, ratio):
+def scale(image: Image, ratio: float):
     """
     Scales the given input image by the given ratio (either enlarge or reduce).
 
@@ -61,10 +63,14 @@ def compress_jpeg(image, qf):
     :param image: input image
     :type image: PIL.Image
     :param qf: quality factor of the new .jpeg output
-    :type qf: int (1~100)
+    :type qf: int (1~95)
 
     :return: the modified image
     :rtype: PIL.Image
     """
-    pass
+    TMP_PATH = './tmp.jpg'
+    image.save(TMP_PATH, 'jpeg', quality=qf)
+    out = read(TMP_PATH)
+    remove(TMP_PATH)
+    return out
 
