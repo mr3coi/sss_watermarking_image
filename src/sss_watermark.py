@@ -20,9 +20,12 @@ class SSSW(object):
         :param pat_size: size of the watermark to be inserted
         :type pat_size: int
         """
+        ''' deprecated
         self.original   = misc.imread(img_path,
                                     flatten=True,
                                     mode='L').astype(float)
+        '''
+        self.original   = Image.open(img_path).convert("L")
         self.alpha      = alpha     # Scaling parameter
         self.mark_size  = pat_size  # Size of the watermark
         self.mark       = self.gaussian_vector(pat_size)    # Watermark for the current instance
@@ -30,7 +33,6 @@ class SSSW(object):
         self.ori_dct    = None      # Storage of DCT result of input image
 
     def insert(self):
-        # TODO convert to PIL.Image, as 'misc.imread' is deprecated
         """
         Method for inserting a generated watermark into the input image.
 
@@ -38,16 +40,16 @@ class SSSW(object):
         :rtype: numpy.ndarray(float)
         """
         # Compute DCT of the original image
-        self.ori_dct = SSSW.dctII(self.original)
+        self.ori_dct = SSSW.dctII(to_array(self.original))
 
         # Compute the regions most perceptually significant
         locations = np.argsort(-self.ori_dct,axis=None)
-        ROW_SIZE = self.original.shape[-1]
+        ROW_SIZE = self.original.size[0]
         locations = [(val//ROW_SIZE, val%ROW_SIZE) for val in locations]
 
         # Generate 2-D watermark
         # (Using the formula (2) described in the paper)
-        self.mark_2d = np.zeros(shape=self.original.shape, dtype=float)
+        self.mark_2d = np.zeros(shape=self.ori_dct.shape, dtype=float)
         for idx,(loc,mark_val) in enumerate(zip(locations,self.mark)):
             self.mark_2d[loc] += self.alpha * mark_val
         self.mark_2d *= self.ori_dct
@@ -113,8 +115,8 @@ class SSSW(object):
                  w/ data from the orignal image
         :rtype: PIL.Image
         """
-        # TODO remove 'fromarray' once conversion to 'PIL.Image' is complete in 'insert'
-        out = Image.fromarray(self.original).convert("L").copy()
+        #out = Image.fromarray(self.original).convert("L").copy()   # deprecated
+        out = self.original.copy()
         out.paste(image, box=tuple(reversed(topleft)))
         return out
 
@@ -132,8 +134,7 @@ class SSSW(object):
         :return: the input image resized to match the original image
         :rtype: PIL.Image
         """
-        print(self.original.shape)
-        return image.resize(size=reversed(self.original.shape))
+        return image.resize(size=self.original.size)
 
     @staticmethod
     def gaussian_vector(size: int):
@@ -164,3 +165,7 @@ class SSSW(object):
         :rtype: numpy ndarray(float, 2-D)
         """
         return idct(idct(image,axis=1, norm='ortho'),axis=0, norm='ortho')
+
+    @staticmethod
+    def to_array(image: Image):
+        return np.array(image, dtype='np.float64')
