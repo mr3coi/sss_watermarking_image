@@ -16,7 +16,7 @@ class SSSW(object):
     Also includes functions that reconstruct "attacked" versions of the images \
             to match the original image.
     """
-    def __init__(self, img_path, alpha=0.1, pat_size=100):
+    def __init__(self, img_path, alpha=0.1, pat_size=5000):
         """
         :param img_path: the datapath to the source image
         :type img_path: const string
@@ -74,7 +74,7 @@ class SSSW(object):
         :return: the extracted watermark
         :rtype: numpy ndarray(float)
         """
-        return SSSW.dctII(np.array(new_image)) - self.ori_dct
+        return SSSW.dctII(self.to_float_array(new_image)) - self.ori_dct
 
     def detect(self, image, threshold=6):
         """
