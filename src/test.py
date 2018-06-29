@@ -21,6 +21,10 @@ if __name__ == "__main__":
     sssws = [SSSW(img_path=IMG_PATH) for _ in range(4)]
     marked_images = [sssw.insert() for sssw in sssws]
 
+    # Present the watermarked images
+    for image in marked_images:
+        show_img(image)
+
     # Generate attacked versions of the watermarked images
     args = [(topleft, botright), (degrees,), (ratio,), (qf,)]
     args = [tuple([img]) + arg for img, arg in zip(marked_images, args)]
@@ -29,7 +33,6 @@ if __name__ == "__main__":
 
     # Present the attacked versions
     for image in attack_outputs:
-        continue        # TODO remove
         show_img(image)
 
     # Recover the attacked images
@@ -42,7 +45,6 @@ if __name__ == "__main__":
 
     # Present the recovered versions
     for image in recover_outputs:
-        continue        # TODO remove
         show_img(image)
 
     # Criss-cross detect watermarks (both not-attacked and attacked)
@@ -50,5 +52,6 @@ if __name__ == "__main__":
     detect_own = [ ((i+1,j+1), sssws[i].detect(targets[j])) \
                     for i,j in product(range(len(sssws)),range(len(targets))) ]
 
+    # Present test results
     for pair in detect_own:
         print(pair)

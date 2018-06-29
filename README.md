@@ -1,6 +1,6 @@
 # sss_watermarking_image
 
-Python implementation of 'Secure Spread Spectrum Watermarking for Multimedia' (Cox et al., 1997) using Numpy, Scipy.
+Python 3.6 implementation of 'Secure Spread Spectrum Watermarking for Multimedia' (Cox et al., 1997) using Numpy, Scipy.
 
 ### Contents
 
@@ -17,6 +17,10 @@ Python implementation of 'Secure Spread Spectrum Watermarking for Multimedia' (C
 - `Numpy`
 - `Scipy`
 - `PIL`
+
+### Data
+
+Bavarian couple image (true name unknown, source: Corel Stock Photo Library)
 
 ### Run
 
