@@ -22,5 +22,6 @@ def show_img(image: Image, gray=True):
         plt.imshow(image)
     plt.show()
 
-def save(image: Image):
-    pass
+def save(image: Image, path: str):
+    image.save(path)
+    #image.close()
