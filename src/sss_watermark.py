@@ -12,8 +12,11 @@ class SSSW(object):
     (ii)    inserts the pattern into the given image (as specified in paper),
     (iii)   stores intermediate data for detection, and
     (iv)    conducts detection process when given a modified version of the input image
+
+    Also includes functions that reconstruct "attacked" versions of the images \
+            to match the original image.
     """
-    def __init__(self, img_path, alpha=0.1, pat_size=100):
+    def __init__(self, img_path, alpha=0.1, pat_size=5000):
         """
         :param img_path: the datapath to the source image
         :type img_path: const string
@@ -42,7 +45,7 @@ class SSSW(object):
         :rtype: numpy.ndarray(float)
         """
         # Compute DCT of the original image
-        self.ori_dct = SSSW.dctII(self.to_array(self.original))
+        self.ori_dct = SSSW.dctII(self.to_float_array(self.original))
 
         # Compute the regions most perceptually significant
         locations = np.argsort(-self.ori_dct,axis=None)
@@ -57,7 +60,7 @@ class SSSW(object):
         self.mark_2d *= self.ori_dct
 
         # Embed the watermark into the regions & convert the DCT back to image
-        image_rev = Image.fromarray(SSSW.idctII(self.ori_dct + self.mark_2d)).convert("L")
+        image_rev = self.from_float_array(SSSW.idctII(self.ori_dct + self.mark_2d))
 
         return image_rev
 
@@ -67,10 +70,11 @@ class SSSW(object):
 
         :param new_image: the image whose watermark is to be matched
         :type new_image: PIL.Image
+
         :return: the extracted watermark
         :rtype: numpy ndarray(float)
         """
-        return SSSW.dctII(np.array(new_image)) - self.ori_dct
+        return SSSW.dctII(self.to_float_array(new_image)) - self.ori_dct
 
     def detect(self, image, threshold=6):
         """
@@ -81,6 +85,7 @@ class SSSW(object):
         :type image: numpy.ndarray(float)
         :param threshold: threshold for concluding the similarity of the watermarks 
         :type threshold: float
+
         :return: (similarity value, whether the watermark is detected or not)
         :rtype: tuple(float, bool)
         """
@@ -92,6 +97,7 @@ class SSSW(object):
             :type X: numpy.ndarray(float, 2-D)
             :param X_star: the image whose watermark is to be matched
             :type X: numpy.ndarray(float, 2-D)
+
             :return: the degree of similarity
             :rtype: float
             """
@@ -117,7 +123,6 @@ class SSSW(object):
                  w/ data from the orignal image
         :rtype: PIL.Image
         """
-        #out = Image.fromarray(self.original).convert("L").copy()   # deprecated
         out = self.original.copy()
         out.paste(image, box=tuple(reversed(topleft)))
         return out
@@ -169,6 +174,7 @@ class SSSW(object):
         """
         :param size: the size of the generated vector
         :type size: int
+
         :return: the generated vector
         :rtype: numpy.ndarray(float)
         """
@@ -179,6 +185,7 @@ class SSSW(object):
         """
         :param image: the input for 2-D DCT
         :type image: numpy.ndarray(float, 2-D)
+
         :return: the DCT result
         :rtype: numpy ndarray(float, 2-D)
         """
@@ -189,6 +196,7 @@ class SSSW(object):
         """
         :param image: the input for 2-D Inverse-DCT
         :type image: numpy.ndarray(float, 2-D)
+
         :return: the Inverse-DCT result
         :rtype: numpy ndarray(float, 2-D)
         """
@@ -196,6 +204,46 @@ class SSSW(object):
 
     @staticmethod
     def to_array(image: Image):
+        """
+        Converts the given PIL.Image to a pixel array (0-255).
+
+        :param image: input image
+        :type image: PIL.Image
+
+        :return: pixel array
+        :rtype: numpy ndarray
+        """
         return np.array(image)
 
+    @staticmethod
+    def to_float_array(image: Image):
+        """
+        Converts the given PIL.Image to a pixel array of float values in range 0-1.
+
+        :param image: input image
+        :type image: PIL.Image
+
+        :return: pixel array
+        :rtype: numpy ndarray(float, 2-D)
+        """
+        return np.array(image).astype(float) / 256
+
+    @staticmethod
+    def from_float_array(array: np.ndarray):
+        """
+        Converts the given PIL.Image to a pixel array of float values in range 0-1.
+        Ignores rounding error wihle converting pixel values from float \
+                to integers in 0-255 range.
+
+        :param array: pixel array (w/ values in float, 0-1)
+        :type array: numpy ndarray(float, 2-D)
+
+        :return: output image
+        :rtype: PIL.Image
+        """
+        array *= 255
+        array = np.around(array)
+        return Image.fromarray(array).convert(mode="L")
+
+    # Class variable (list of recovery functions - used in 'test.py')
     recover_flist = [recover_crop, recover_rotate, recover_scale]

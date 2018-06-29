@@ -8,7 +8,24 @@ import argparse
 HOME_DIR='../'
 SRC_NAME='corel_bavarian_couple.jpg'
 
+def get_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--show_mark', action='store_true',
+                        help="Display watermarked results")
+    parser.add_argument('--show_attacked', action='store_true',
+                        help="Display attacked image results")
+    parser.add_argument('--show_recovered', action='store_true',
+                        help="Display recovered image results")
+    parser.add_argument('--show_all', action='store_true',
+                        help="Display all image results")
+    parser.add_argument('--skip_test', action='store_true',
+                        help="Skip watermark test")
+    return parser
+
 if __name__ == "__main__":
+    parser = get_parser()
+    parsed_args = parser.parse_args()
+
     IMG_PATH = os.path.join(HOME_DIR, 'data', SRC_NAME)
 
     # Arguments for testing
@@ -22,8 +39,9 @@ if __name__ == "__main__":
     marked_images = [sssw.insert() for sssw in sssws]
 
     # Present the watermarked images
-    for image in marked_images:
-        show_img(image)
+    if parsed_args.show_mark or parsed_args.show_all:
+        for image in marked_images:
+            show_img(image)
 
     # Generate attacked versions of the watermarked images
     args = [(topleft, botright), (degrees,), (ratio,), (qf,)]
@@ -32,8 +50,9 @@ if __name__ == "__main__":
     attack_outputs = [attack(*arg) for attack, arg in zip(attacks, args)]
 
     # Present the attacked versions
-    for image in attack_outputs:
-        show_img(image)
+    if parsed_args.show_attacked or parsed_args.show_all:
+        for image in attack_outputs:
+            show_img(image)
 
     # Recover the attacked images
     recover_args = [(topleft,), (degrees,), ()]
@@ -44,14 +63,16 @@ if __name__ == "__main__":
     recover_outputs.append(attack_outputs[-1])      # recompressed image is used as-is
 
     # Present the recovered versions
-    for image in recover_outputs:
-        show_img(image)
+    if parsed_args.show_recovered or parsed_args.show_all:
+        for image in recover_outputs:
+            show_img(image)
 
     # Criss-cross detect watermarks (both not-attacked and attacked)
-    targets = marked_images + recover_outputs
-    detect_own = [ ((i+1,j+1), sssws[i].detect(targets[j])) \
-                    for i,j in product(range(len(sssws)),range(len(targets))) ]
+    if not parsed_args.skip_test:
+        targets = marked_images + recover_outputs
+        detect_own = [ ((i+1,j+1), sssws[i].detect(targets[j])) \
+                        for i,j in product(range(len(sssws)),range(len(targets))) ]
 
-    # Present test results
-    for pair in detect_own:
-        print(pair)
+        # Present test results
+        for pair in detect_own:
+            print(pair)
