@@ -8,9 +8,13 @@ Python 3.6 implementation of 'Secure Spread Spectrum Watermarking for Multimedia
 
 - `attack.py`: implementation of "attacks" that can be conducted on an image
 
-- `main.py` : a bunch of codes for testing the above two modules
-
 - `test.py` : a simple test to check the correctness and robustness of the watermarking technique
+
+- `image.py` : personal interface module to `PIL.Image`, includes functions for reading/displaying/saving PIL.Image images
+
+- `main.py` : a bunch of codes for testing the above two modules (deprecated)
+
+- `dct_test.py` : codes for testing DCT (deprecated)
 
 ### Required Libraries
 
