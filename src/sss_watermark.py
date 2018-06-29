@@ -42,7 +42,7 @@ class SSSW(object):
         :rtype: numpy.ndarray(float)
         """
         # Compute DCT of the original image
-        self.ori_dct = SSSW.dctII(to_array(self.original))
+        self.ori_dct = SSSW.dctII(self.to_array(self.original))
 
         # Compute the regions most perceptually significant
         locations = np.argsort(-self.ori_dct,axis=None)
@@ -57,7 +57,7 @@ class SSSW(object):
         self.mark_2d *= self.ori_dct
 
         # Embed the watermark into the regions & convert the DCT back to image
-        image_rev = SSSW.idctII(self.ori_dct + self.mark_2d)
+        image_rev = Image.fromarray(SSSW.idctII(self.ori_dct + self.mark_2d)).convert("L")
 
         return image_rev
 
@@ -66,11 +66,11 @@ class SSSW(object):
         Extracts the watermark from the presumed location of the new image.
 
         :param new_image: the image whose watermark is to be matched
-        :type new_image: numpy.ndarray
+        :type new_image: PIL.Image
         :return: the extracted watermark
         :rtype: numpy ndarray(float)
         """
-        return SSSW.dctII(new_image) - self.ori_dct
+        return SSSW.dctII(np.array(new_image)) - self.ori_dct
 
     def detect(self, image, threshold=6):
         """
@@ -196,4 +196,6 @@ class SSSW(object):
 
     @staticmethod
     def to_array(image: Image):
-        return np.array(image, dtype='np.float64')
+        return np.array(image)
+
+    recover_flist = [recover_crop, recover_rotate, recover_scale]
