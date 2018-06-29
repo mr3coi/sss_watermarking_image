@@ -2,6 +2,8 @@ from scipy import misc
 from scipy.fftpack import dct, idct
 import numpy as np
 from PIL import Image
+from PIL.ImageOps import invert
+from itertools import product
 
 class SSSW(object):
     """
@@ -120,10 +122,36 @@ class SSSW(object):
         out.paste(image, box=tuple(reversed(topleft)))
         return out
 
-    def recover_rotate(self, image, angle):
-        pass
+    def recover_rotate(self, image: Image, angle: int):
+        """
+        Rotates the input image back to fit the original image, \
+            and fills in the parts that are missing due to rotation.
+        Assumes that the angle of rotation is provided, and that the image \
+            has not been expanded when rotated (i.e. corners have been cut off).
+        Also ssumes that no other modification has been made to the input.
 
-    def recover_scale(self, image):
+        :param image: input image
+        :type image: PIL.Image
+        :param angle: the degree that the image was rotated (CCW)
+        :type angle: int
+
+        :return: the input image modified to match the original image
+        :rtype: PIL.Image
+        """
+        out = image.rotate(-angle)
+        '''
+        for coord in product(range(self.original.size[1]), range(self.original.size[0])):
+            if out.getpixel(coord) != 0:
+                out.putpixel(coord, self.original.getpixel(coord))
+        '''
+        #mask = out.convert(mode="1",dither=None).convert('L')  # insufficient masking
+        mask = out.point(lambda x: 255*int(x>0))
+        mask = invert(mask).convert('1')
+        out.paste(self.original,mask=mask)
+
+        return out
+
+    def recover_scale(self, image: Image):
         """
         Resizes the input image to fit the size of the original image.
         Assumes that no other modification has been made to the input.
